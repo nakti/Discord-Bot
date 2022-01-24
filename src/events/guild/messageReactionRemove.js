@@ -1,6 +1,7 @@
 // Dependencies
 const { Embed } = require('../../utils'),
 	Event = require('../../structures/Event');
+const {ReactionRoleSchema} = require("../../database/models");
 
 /**
  * Message reaction remove event
@@ -34,6 +35,33 @@ class MessageReactionRemove extends Event {
 			if (reaction.message.partial) await reaction.message.fetch();
 		} catch (err) {
 			return bot.logger.error(`Event: '${this.conf.name}' has error: ${err.message}.`);
+		}
+
+		const { guild } = reaction.message;
+
+		// eslint-disable-next-line no-empty-function
+		const member = await guild.members.fetch(user.id).catch(() => {});
+		if (!member) return;
+
+		// check database if reaction is from reaction role embed
+		const dbReaction = await ReactionRoleSchema.findOne({
+			guildID: guild.id,
+			messageID: reaction.message.id,
+		});
+
+		if (dbReaction) {
+			const rreaction = dbReaction.reactions.find(r => r.emoji === reaction.emoji.toString());
+			if (rreaction) {
+				// Add or remove role depending if they have it or not
+				try {
+					if (member.roles.cache.has(rreaction.roleID)) {
+						return await member.roles.remove(rreaction.roleID);
+					}
+				} catch (err) {
+					const channel = await bot.channels.fetch(dbReaction.channelID).catch(() => bot.logger.error(`Missing channel for reaction role in guild: ${guild.id}`));
+					if (channel) channel.send(`I am missing permission to remove ${member} the role: ${guild.roles.cache.get(rreaction.roleID)}`).then(m => m.timedDelete({ timeout: 5000 }));
+				}
+			}
 		}
 
 		// make sure the message author isn't the bot

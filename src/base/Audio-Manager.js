@@ -17,7 +17,7 @@ class AudioManager extends Manager {
 			plugins: [
 				new Deezer({ playlistLimit: 1, albumLimit: 1 }),
 				new Facebook(),
-				new Spotify({ clientID: bot['config']['api_keys']['spotify']['iD'], clientSecret: bot['config']['api_keys']['spotify']['secret'] }),
+				//new Spotify({ clientID: bot['config']['api_keys']['spotify']['iD'], clientSecret: bot['config']['api_keys']['spotify']['secret'] }),
 			],
 			autoPlay: true,
 			send(id, payload) {

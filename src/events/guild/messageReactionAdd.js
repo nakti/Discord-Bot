@@ -61,8 +61,6 @@ class MessageReactionAdd extends Event {
 				try {
 					if (!member.roles.cache.has(rreaction.roleID)) {
 						return await member.roles.add(rreaction.roleID);
-					} else {
-						return await member.roles.remove(rreaction.roleID);
 					}
 				} catch (err) {
 					const channel = await bot.channels.fetch(dbReaction.channelID).catch(() => bot.logger.error(`Missing channel for reaction role in guild: ${guild.id}`));
